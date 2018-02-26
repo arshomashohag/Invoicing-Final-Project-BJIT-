@@ -25,6 +25,47 @@
 <link
 	href="https://fonts.googleapis.com/css?family=Montserrat:300,300i,400,400i,500,500i,600,600i,700,700i"
 	rel="stylesheet">
+	
+	
+	
+	
+	<script type="text/javascript">
+	function paginate(inc){
+		
+		var pn = parseInt($("#pagenumber").html());
+		var tp = parseInt($("#totalPage").html());
+		var flag=0;
+		
+		if(inc==(-1) ){
+			if(pn>1){
+				pn=pn-1;
+				flag=1;
+			}
+		}
+		else{
+			if(pn<tp){
+				pn=pn+1;
+				flag=1;
+			}
+		}
+		
+		 
+		if(flag==1){
+
+			var xhttp = new XMLHttpRequest();
+			  xhttp.onreadystatechange = function() {
+			    if (this.readyState == 4 && this.status == 200) {
+			      document.getElementById("invoicelist").innerHTML = this.response;
+			      $("#pagenumber").html( parseInt($("#pagenumber").html())+inc);
+			    }
+			  };
+			  xhttp.open("POST", "index?pn="+pn);
+			  xhttp.send();
+			
+		}
+	}
+	
+	</script>
 
 </head>
 
@@ -84,7 +125,15 @@
 			 
 
 				<div class="panel panel-default">
-					<div class="panel-heading"></div>
+					 
+						<div class="panel-heading" style="float:right;">
+					 
+							<span id="pagenumber">1</span><span> / </span><span id="totalPage">${totalPage}</span>
+							<button class="btn btn-default" onclick="paginate(-1)"><i class="glyphicon glyphicon-menu-left" ></i></button>
+							<button class="btn btn-default" onclick="paginate(1)"><i class="glyphicon glyphicon-menu-right" ></i></button>
+					 
+						</div>
+ 
 
 
 					<div class="panel-body">
@@ -107,7 +156,7 @@
 							<tbody id="invoicelist">
 								<c:forEach items="${invoiceList}" var="invoice">
 									<tr id="${invoice.id}">
-										<td><a id="customer" href="details?id=${invoice.id}">${invoice.customer.name}</a></td>
+										<td><a  href="details?id=${invoice.id}">${invoice.customer.name}</a></td>
 										<td>${invoice.invoiceDate}</td>
 										<td>${invoice.invoiceNumber}</td>
 										<td>${invoice.salesperson}</td>
@@ -133,8 +182,9 @@
 	</div>
 	<!--/.main-->
 
-	<script
-		src="<c:url value="/resources/static//js/jquery-1.11.1.min.js"/>"></script>
+	 <script src="http://code.jquery.com/jquery-3.3.1.min.js"
+		integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+		crossorigin="anonymous"></script>
 	<script src="<c:url value="/resources/static/js/bootstrap.min.js"/>"></script>
 	<script src="<c:url value="/resources/static/js/chart.min.js"/>"></script>
 	<script src="<c:url value="/resources/static/js/chart-data.js"/>"></script>

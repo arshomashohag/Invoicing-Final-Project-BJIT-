@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -199,6 +200,42 @@ public class APIController {
 		
 		
 		return "Hoiche";
+	}
+	
+	@PostMapping(value={"/", "/index"}, produces={MediaType.APPLICATION_JSON_VALUE })
+	@ResponseBody
+	public String paginatePage(@RequestParam("pn") int start){
+		String rows="";
+		
+		
+		
+		List<Invoice> invoiceList = invoiceservice.getAllInvoice();
+		
+		int l = invoiceList.size();
+		 
+		start=5*(start-1);
+		int endp=((start+5)<l ? start+5:l);
+		
+		invoiceList = invoiceList.subList(start, endp);
+		
+		
+		System.out.println(start+" "+endp);
+		for (Invoice invoice : invoiceList) {
+						rows+="<tr id="+invoice.getId()+">"+
+ 						"<td><a href=\"details?id="+invoice.getId()+"\">"+invoice.getCustomer().getName()+"</a></td>"+
+ 						"<td>"+invoice.getInvoiceDate()+"</td>"+
+ 						"<td>"+invoice.getInvoiceNumber()+"</td>"+
+ 						"<td>"+invoice.getSalesperson()+"</td>"+
+ 						"<td>"+invoice.getDueDate()+"</td>"+
+ 						"<td>"+invoice.getSrcDocument()+"</td>"+
+ 						"<td>"+invoice.getTotalBill()+"</td>"+
+					"<td>"+invoice.getDueAmount()+"</td>"+
+					"<td>"+invoice.getStatus()+"</td>"+
+
+				"</tr>";
+		}
+		
+		return rows;
 	}
 
 }
