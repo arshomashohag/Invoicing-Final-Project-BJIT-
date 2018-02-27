@@ -14,9 +14,9 @@ public class InvoiceServiceImp implements InvoiceService{
 	@Autowired
 	private InvoiceDao invoiceDao;
 	
-	public void addInvoice(Invoice invoice) {
+	public Long addInvoice(Invoice invoice) {
 		// TODO Auto-generated method stub
-		invoiceDao.addInvoice(invoice);
+		return invoiceDao.addInvoice(invoice);
 	}
 
 	 

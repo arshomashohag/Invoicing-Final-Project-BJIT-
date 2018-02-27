@@ -5,7 +5,7 @@ import java.util.List;
 import com.example.model.Invoice;
 
 public interface InvoiceDao {
-	void addInvoice(Invoice invoice);
+	Long addInvoice(Invoice invoice);
 	
 	List<Invoice> getAllInvoice();
 	void updateInvoice(Invoice invoice);

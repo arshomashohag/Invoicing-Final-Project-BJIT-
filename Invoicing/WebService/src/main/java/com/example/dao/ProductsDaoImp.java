@@ -34,6 +34,16 @@ public class ProductsDaoImp implements ProductsDao{
 		return em.find(Products.class, pid);
 	}
 
-	 
+
+	@Transactional
+	public void update(Products products, Long q) {
+		// TODO Auto-generated method stub
+		
+		Products prods = em.find(Products.class, products.getPsid());
+		 
+		prods.setQuantity(prods.getQuantity()-q); 
+	}
+
+	
 
 }

@@ -8,6 +8,9 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
+
+import com.example.controller.ValidationOfInput;
+
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalEntityManagerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -46,5 +49,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 	          .addResourceHandler("/resources/**")
 	          .addResourceLocations("/resources/"); 
 	    }
+	 
+	 @Bean
+	 public ValidationOfInput createValidation(){
+		 return new ValidationOfInput();
+	 }
 
 }

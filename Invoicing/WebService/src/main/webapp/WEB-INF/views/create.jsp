@@ -50,6 +50,7 @@ function createnewinvoice(ev){
 	 
 	 $('input[name="quantity"]').each(function() {
 		 prods.push([pids[i], $(this).val()]);
+		  
 			i++;
 		});
 	 
@@ -63,8 +64,35 @@ function createnewinvoice(ev){
 	    var xhttp = new XMLHttpRequest();
 	    xhttp.onreadystatechange = function() {
 	      if (this.readyState == 4 && this.status == 200) {
-	       document.getElementById("discardinvoice").click();
+	    	 
+	    	 var result=JSON.parse(this.responseText);
+	    		  
+	    		 
+	  	    	 if(result.length==1){  
+		    	 var link="details?id="+result;  
+		    	 
+	 	    	 window.location.href = link;
+		        
+		    	 }
+ 	    	 
+ 	    	 else{
+  	    		 var index=0;
+  	    		 var idofelement;
+ 	    		 $.each(result, function(key, value){
+ 	    			  
+ 	    			if(index%2==0){
+  	    				idofelement=value;
+  	    			}else{
+  	    				$("#"+idofelement).html(value);
+ 	    				$("#"+idofelement).css("color","red");
+ 	    			}
+  	    			index++;
+ 	    		});
+ 	    	 }
+	       
 	      }
+	      
+	      
 	       
 	    };
 	    xhttp.open("POST", "create?date="+invoiceDate+"&cname="+cname+"&paymentTerm="+paymentTerm+"&salesPerson="+salesPerson+"&prods="+prods);
@@ -104,7 +132,7 @@ function createnewinvoice(ev){
 		<!-- /.container-fluid -->
 	</nav>
 
-
+	<a  id="gotodetails" href="" hidden ></a>
 
 	<div id="sidebar-collapse" class="col-sm-3 col-lg-2 sidebar">
 		<div class="profile-sidebar">
@@ -120,7 +148,8 @@ function createnewinvoice(ev){
 	<!--/.sidebar-->
 
 	<div class="col-sm-8 col-sm-offset-3 col-lg-10 col-lg-offset-2 main">
-
+	
+		
 		<ol class="breadcrumb">
 			<li class="active">Customer Invoices / New</li>
 		</ol>
@@ -173,8 +202,10 @@ function createnewinvoice(ev){
 								<p>Invoice Date</p>
 							</div>
 							<div class="col col-md-3">
+								<span id="dateofinvoice" ></span>								 
 								<input type="date" id="invoiceDate" class="form-control"
 									required>
+								 
 							</div>
 						</div>
 
@@ -194,6 +225,7 @@ function createnewinvoice(ev){
 									<option value="End of Following Month">End of Following Month</option>
 									<option value="Immediate Payment">Immediate Payment</option>
 								</select>
+								<span id="payterm" ></span>
 							</div>
 							<div class="col col-md-1"></div>
 
@@ -204,10 +236,11 @@ function createnewinvoice(ev){
 							<div class="col col-md-3">
 								<select id="salesPerson" class="form-control" required
 									name="salesperson">
-									<option value="Administraor">Administraor</option>
+									<option value="Administrator">Administraor</option>
 									<option value="Demo Portal User">Demo Portal User</option>
 									<option value="Demo User">Demo User</option>
 								</select>
+								<span id="salesp" ></span>
 							</div>
 						</div>
 
@@ -297,17 +330,7 @@ function createnewinvoice(ev){
 	<script src="<c:url value="/resources/static/js/bootstrap.min.js"/>"></script>
     
     <script src="<c:url value="/resources/static/js/main.js"/>"></script>
-	<script>
-		window.onload = function() {
-			var chart1 = document.getElementById("line-chart").getContext("2d");
-			window.myLine = new Chart(chart1).Line(lineChartData, {
-				responsive : true,
-				scaleLineColor : "rgba(0,0,0,.2)",
-				scaleGridLineColor : "rgba(0,0,0,.05)",
-				scaleFontColor : "#c5c7cc"
-			});
-		};
-	</script>
+	 
 
 </body>
 </html>

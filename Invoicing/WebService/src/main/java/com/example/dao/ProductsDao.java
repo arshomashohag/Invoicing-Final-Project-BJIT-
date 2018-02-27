@@ -10,4 +10,6 @@ public interface ProductsDao {
 
 public Products getProductsById(Long pid);
 
+public void update(Products products, Long q);
+
 }

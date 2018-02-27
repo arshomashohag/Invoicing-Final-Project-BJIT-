@@ -26,6 +26,13 @@ public class ProductsServiceImp implements ProductsService{
 		// TODO Auto-generated method stub
 		return productsDao.getProductsById(pid);
 	}
+
+
+	@Override
+	public void update(Products products, Long q) {
+		// TODO Auto-generated method stub
+		productsDao.update(products, q);
+	}
 	
 	
 

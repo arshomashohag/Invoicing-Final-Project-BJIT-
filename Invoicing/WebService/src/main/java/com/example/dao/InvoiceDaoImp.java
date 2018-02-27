@@ -37,9 +37,10 @@ public class InvoiceDaoImp implements InvoiceDao{
 	}
 
 	@Transactional
-	public void addInvoice(Invoice invoice) {
+	public Long addInvoice(Invoice invoice) {
 		// TODO Auto-generated method stub
 		em.persist(invoice);
+		 return invoice.getId();
 	}
 
 	@Transactional

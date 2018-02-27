@@ -1,6 +1,9 @@
 package com.example.controller;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.example.model.Customer;
 import com.example.model.Invoice;
 import com.example.model.Product;
 import com.example.model.Products;
@@ -20,6 +24,10 @@ import com.example.service.CustomerService;
 import com.example.service.InvoiceService;
 import com.example.service.ProductService;
 import com.example.service.ProductsService;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.sun.corba.se.impl.protocol.giopmsgheaders.RequestMessage;
+import com.example.controller.ValidationOfInput;
 
 @Controller
 public class APIController {
@@ -35,6 +43,10 @@ public class APIController {
 	
 	@Autowired 
 	InvoiceService invoiceservice;
+	 
+	
+	@Autowired
+	ValidationOfInput validation;
 	
 	
 	@GetMapping("/products")
@@ -46,20 +58,24 @@ public class APIController {
 	
 	@PostMapping(value="/create")
 	@ResponseBody
-	public String createNewInvoice(@RequestParam("date") String invoiceDate, @RequestParam("paymentTerm") String paymentTerm, @RequestParam("cname") Long cname, @RequestParam("salesPerson") String salesPerson, @RequestParam("prods") List<Long> prods){
+	public String  createNewInvoice(@RequestParam("date") String invoiceDate, @RequestParam("paymentTerm") String paymentTerm, @RequestParam("cname") Long cname, @RequestParam("salesPerson") String salesPerson, @RequestParam("prods") List<Long> prods){
 		int i, l=prods.size();
+		int j;
 		double total, tax, invoiceTotal;
 		Long pid, quantity;
+		List<String> returnMessage =new ArrayList<String>();
 		Invoice invoice = new Invoice();
+		
+		Gson gsonBuilder = new GsonBuilder().create();
 		
 		invoice.setInvoiceDate(invoiceDate);
 		invoice.setSalesperson(salesPerson);
 		invoice.setPayment_term(paymentTerm);
 
-		System.out.println(cname);
 		
-		invoice.setCustomer(customerservice.getCustomerById(cname));
-		invoice.setStatus("Open");
+		Customer customer = customerservice.getCustomerById(cname);
+		
+		 
 		 
 		Products singleproducts;
 		Product product;
@@ -67,42 +83,110 @@ public class APIController {
 		Map<Long,Long> checkList = new HashMap<Long, Long>();
 		
 		invoiceTotal=0;
-		 for(i=0; i<l; i+=2){
+		
+		
+		
+		 
+			returnMessage = validation.validateInput(invoiceDate, salesPerson, paymentTerm);
+			
+			if(returnMessage.size()==0 && !returnMessage.contains("dateofinvoice")){
+				invoice.setDueDate(invoiceDate);
+				Date current = new Date();
+				LocalDate localdate = current.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+				invoice.setInvoiceDate(localdate.toString());
+			}
+			
+			if(returnMessage.size()==0){
+				invoice.setSalesperson(salesPerson);
+			}
+			
+			if(returnMessage.size()==0){
+				invoice.setPayment_term(paymentTerm);
+			}
+			
+			if(customer==null){
+				returnMessage.add("customer");
+				returnMessage.add("Invalid Customer");
+			}
+			
+			else if(returnMessage.size()==0){
+				invoice.setCustomer(customer);
+				invoice.setStatus("Open");
+			}
+			
+			
+			 
+		
+		
+		 for(i=0, j=0; i<l; i+=2){
 			pid= prods.get(i);
+			
 			if(pid!=0){
 			
 			quantity = prods.get(i+1);
-			singleproducts = productsservice.getProductsById(pid);
-			total = quantity*singleproducts.getPrice();
-			tax = (total*singleproducts.getTax())/100;
-			total+=tax;
-			
-			
-			
-			invoiceTotal+=total;
-			
-			
-			
-			if(!checkList.containsKey(pid)){
-				checkList.put(pid, quantity);
-				product = new Product();
-				product.setTotal(total);
-				product.setQuantity(quantity);
-				product.setProducts(singleproducts);
-				listProduct.add(product);
-			}
-			else{
-				for (Product product2 : listProduct) {
-					if(product2.getProducts().getPsid()==pid){
-						product2.setQuantity(quantity+ product2.getQuantity());
-						product2.setTotal(total+product2.getTotal());
-						
-					}
-				}
-			}
 			
 			 
 			
+			singleproducts = productsservice.getProductsById(pid);
+			
+			
+					if(singleproducts!=null){			
+						total = quantity*singleproducts.getPrice();
+						tax = (total*singleproducts.getTax())/100;
+						total+=tax;
+						
+						
+						
+						invoiceTotal+=total;
+						
+						
+						
+						if(!checkList.containsKey(pid)){
+							
+							
+							
+							if(singleproducts.getQuantity()>=quantity){
+								checkList.put(pid, quantity);
+								product = new Product();
+								product.setTotal(total);
+								product.setQuantity(quantity);
+								product.setProducts(singleproducts);
+								product.setQuantity(quantity);
+								listProduct.add(product);
+							}
+							else{
+								returnMessage.add("prodq"+j);
+								returnMessage.add("Limited storage!");
+							}
+							
+							
+						}
+						else{
+							for (Product product2 : listProduct) {
+								
+								Products prod = product2.getProducts();
+								if(prod.getPsid()==pid){
+									
+									if(prod.getQuantity()>=(quantity+product2.getQuantity())){
+										product2.setQuantity(quantity+ product2.getQuantity());
+										product2.setTotal(total+product2.getTotal());
+									}
+									else{
+										returnMessage.add("prodq"+j);
+										returnMessage.add("Limited storage!");
+										 
+									}
+									
+								}
+							}
+						}
+			
+			 
+		    }
+			else{
+				returnMessage.add("prodn"+j);
+				returnMessage.add("Invalid product name!");
+			}
 			 
 			
 		   }
@@ -114,14 +198,31 @@ public class APIController {
 		 
 		 invoice.setInvoiceNumber("NA");
 		 invoice.setDueDate(invoiceDate);
-		 if(i>0)invoice.setProductList(listProduct);
 		 
-		 invoiceservice.addInvoice(invoice);
+		 
+		 
+		  
+		 
+		 if(returnMessage.size()==0)
+			 {
+			    invoice.setProductList(listProduct); 
+			    Long ret=invoiceservice.addInvoice(invoice);
+			    
+			    for (Product product2 : listProduct) {
+			    	 
+			    	productsservice.update(product2.getProducts(), product2.getQuantity());
+				}
+			    
+			    
+			    returnMessage.add(ret.toString());
+			 }
 		
-		return "hoiche";
+		return gsonBuilder.toJson(returnMessage);
 	}
 	
 	
+	
+
 	@PostMapping("/update")
 	@ResponseBody	
 	public String updateInvoice(@RequestParam("id") Long id,@RequestParam("prods") List<Long> prods){
@@ -131,6 +232,7 @@ public class APIController {
 		Invoice invoice = new Invoice();
 		
 		invoice.setStatus("Open");
+		 
 		 
 		Products singleproducts;
 		Product product;
@@ -146,39 +248,47 @@ public class APIController {
 			
 			quantity = prods.get(i+1);
 			singleproducts = productsservice.getProductsById(pid);
-			total = quantity*singleproducts.getPrice();
-			tax = (total*singleproducts.getTax())/100;
-			total+=tax;
 			
 			
-			
-			invoiceTotal+=total;
-			
-			
-			
-			if(!checkList.containsKey(pid)){
-				checkList.put(pid, quantity);
-				product = new Product();
-				product.setTotal(total);
-				product.setQuantity(quantity);
-				product.setProducts(singleproducts);
-				listProduct.add(product);
-			}
-			else{
-				for (Product product2 : listProduct) {
-					if(product2.getProducts().getPsid()==pid){
-						product2.setQuantity(quantity+ product2.getQuantity());
-						product2.setTotal(total+product2.getTotal());
-						
+				total = quantity*singleproducts.getPrice();
+				tax = (total*singleproducts.getTax())/100;
+				total+=tax;
+				
+				
+				
+				invoiceTotal+=total;
+				
+				
+				
+				if(!checkList.containsKey(pid)){
+					
+					checkList.put(pid, quantity);
+					product = new Product();
+					product.setTotal(total);
+					product.setQuantity(quantity);
+					product.setProducts(singleproducts);				
+					
+					listProduct.add(product);
+				}
+				else{
+					for (Product product2 : listProduct) {
+						if(product2.getProducts().getPsid()==pid){
+							product2.setQuantity(quantity+ product2.getQuantity());
+							product2.setTotal(total+product2.getTotal());
+							
+						}
 					}
 				}
-			}
+			
+			 
+			
 			
 			 
 			
 			 
 			
 		   }
+			
 			
 		 }
 		 invoice.setId(id);
@@ -202,7 +312,7 @@ public class APIController {
 		return "Hoiche";
 	}
 	
-	@PostMapping(value={"/", "/index"}, produces={MediaType.APPLICATION_JSON_VALUE })
+	@GetMapping(value={"/page",}, produces={MediaType.APPLICATION_JSON_VALUE })
 	@ResponseBody
 	public String paginatePage(@RequestParam("pn") int start){
 		String rows="";
@@ -218,8 +328,7 @@ public class APIController {
 		
 		invoiceList = invoiceList.subList(start, endp);
 		
-		
-		System.out.println(start+" "+endp);
+		 
 		for (Invoice invoice : invoiceList) {
 						rows+="<tr id="+invoice.getId()+">"+
  						"<td><a href=\"details?id="+invoice.getId()+"\">"+invoice.getCustomer().getName()+"</a></td>"+

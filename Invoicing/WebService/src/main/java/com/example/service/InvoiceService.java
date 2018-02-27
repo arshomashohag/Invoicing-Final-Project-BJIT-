@@ -10,7 +10,7 @@ import com.example.model.Invoice;
 
 public interface InvoiceService {
 	
-	void addInvoice(Invoice invoice);
+	Long addInvoice(Invoice invoice);
 	List<Invoice> getAllInvoice();
 	void update(Invoice invoice);
 	Invoice getInvoiceById(Long id);

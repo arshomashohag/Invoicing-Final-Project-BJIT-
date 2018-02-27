@@ -25,12 +25,16 @@ function addAProduct() {
             productList = res;
 
             $.each(res, function(key, value) {
-                newProductRow += "<option value='" + value.psid + "' >" +
-                    value.productname + "</option>"
+                if(value.quantity>=1)newProductRow += "<option value='" + value.psid + "' >" +
+                    value.productname + "</option>";
+                else{
+                	newProductRow += "<option style='color:red' value='" + value.psid + "' disabled>" +
+                    value.productname + "<span >*</span></option>";
+                }
                 if (maximum < value.quantity) maximum = value.quantity;
             });
 
-            newProductRow += "</td><td></td><td><input type='number' class='form-control' disabled min='1' max='" + maximum + "' value='1' required name='quantity'></td><td>0.0</td><td>0.0</td><td>0.0</td>";
+            newProductRow += "</select><span id='prodn"+psids+"'></td><td></td><td><input type='number' class='form-control' disabled min='1' max='" + maximum + "' value='1' required name='quantity'  onkeydown='preventInput(event)' onchange='calculateAmount(this)'><span id='prodq"+psids+"'</td><td>0.0</td><td>0.0</td><td>0.0</td>";
             $('#productlisttabbody')
                 .html(newProductRow + $('#productlisttabbody').html());
             isProductsAvailable = true;
@@ -71,23 +75,26 @@ function addDetails(v) {
     if (id != "0") {
         $.each(productList,function(key, value) {
                 if (value.psid == id) {
-                	 
+                	var tax = parseFloat(row.cells[4].innerHTML);
                 	 newtax = (value.price*value.tax)/100;
+                	
                 	
                 	 prevp = parseFloat(row.cells[5].innerHTML);
                 	 newp = value.price + newtax;
                 	 
                 	
                 	 
-                	 prevuntaxed = parseFloat(row.cells[3].innerHTML);
+                	 prevuntaxed = (parseFloat(row.cells[5].innerHTML)*100)/(tax+100);
                 	 newuntaxed = value.price;
                 	 
                 	 prevtax = prevp-prevuntaxed;
                 	 
                     row.cells[1].innerHTML = value.description;
-                    row.cells[2].innerHTML = "<input type='number' class='form-control'  min='1' max='" +
-                        value.quantity +
-                        "' value='1' required onkeydown='preventInput(event)' name='quantity' onchange='calculateAmount(this)'>";
+                
+                    row.cells[2].getElementsByTagName("INPUT")[0].setAttribute("max", value.quantity);
+                    row.cells[2].getElementsByTagName("INPUT")[0].setAttribute("value", 1);
+                    row.cells[2].getElementsByTagName("INPUT")[0].value=1;
+                    row.cells[2].getElementsByTagName("INPUT")[0].disabled=false;
                     row.cells[3].innerHTML = newuntaxed;
                     row.cells[4].innerHTML = value.tax;
                     row.cells[5].innerHTML = newp;
@@ -121,7 +128,11 @@ function addDetails(v) {
 	   	prevtax = prevp-prevuntaxed;
     	
         row.cells[1].innerHTML = "";
-        row.cells[2].innerHTML = "<input type='number' class='form-control' disabled min='1' max='" + maximum + "' value='1' required name='quantity'>";
+        row.cells[2].getElementsByTagName("INPUT")[0].setAttribute("max", 120);
+        row.cells[2].getElementsByTagName("INPUT")[0].setAttribute("value", 1);
+        row.cells[2].getElementsByTagName("INPUT")[0].value=1;
+        row.cells[2].getElementsByTagName("INPUT")[0].disabled=true;
+        
         row.cells[3].innerHTML = "0.0";
         row.cells[4].innerHTML = "0.0";
         row.cells[5].innerHTML = "0.0";
